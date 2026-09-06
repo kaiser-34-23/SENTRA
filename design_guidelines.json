@@ -1,0 +1,249 @@
+{
+  "project_identity": {
+    "name": "SENTRA — Autonomous Security Intelligence",
+    "positioning": "Autonomous AI Security Engineer and SOC Threat Command Center (not just another vulnerability scanner)",
+    "app_type": "dashboard",
+    "theme_mode": "dark",
+    "target_audience": "Builder Fest Judges (needs 30-second value wow factor) and Security Engineers"
+  },
+  "color_palette": {
+    "background": {
+      "main": "#07090E",
+      "surface": "#0D111A",
+      "surface_elevated": "#131826",
+      "terminal_bg": "#04060A",
+      "glass_overlay": "rgba(13, 17, 26, 0.75)"
+    },
+    "accents": {
+      "primary_cyan": "#00F0FF",
+      "cyan_glow": "rgba(0, 240, 255, 0.25)",
+      "cyan_hover": "#33F3FF",
+      "secondary_steel": "#1E293B",
+      "border_subtle": "rgba(255, 255, 255, 0.08)",
+      "border_active": "rgba(0, 240, 255, 0.4)"
+    },
+    "severity_colors": {
+      "critical": {
+        "text": "#FF3B30",
+        "bg": "rgba(255, 59, 48, 0.12)",
+        "border": "rgba(255, 59, 48, 0.35)",
+        "glow": "0 0 12px rgba(255, 59, 48, 0.4)"
+      },
+      "high": {
+        "text": "#FF9500",
+        "bg": "rgba(255, 149, 0, 0.12)",
+        "border": "rgba(255, 149, 0, 0.35)",
+        "glow": "0 0 10px rgba(255, 149, 0, 0.3)"
+      },
+      "medium": {
+        "text": "#FFCC00",
+        "bg": "rgba(255, 204, 0, 0.12)",
+        "border": "rgba(255, 204, 0, 0.35)",
+        "glow": "0 0 8px rgba(255, 204, 0, 0.25)"
+      },
+      "low": {
+        "text": "#30D158",
+        "bg": "rgba(48, 209, 88, 0.12)",
+        "border": "rgba(48, 209, 88, 0.35)"
+      },
+      "info": {
+        "text": "#64D2FF",
+        "bg": "rgba(100, 210, 255, 0.12)",
+        "border": "rgba(100, 210, 255, 0.35)"
+      }
+    },
+    "text_colors": {
+      "primary": "#F8FAFC",
+      "secondary": "#94A3B8",
+      "muted": "#64748B",
+      "cyan_accent": "#00F0FF"
+    }
+  },
+  "typography": {
+    "font_family_heading": "JetBrains Mono, SF Mono, Menlo, monospace",
+    "font_family_body": "Inter, -apple-system, BlinkMacSystemFont, sans-serif",
+    "font_family_code": "Fira Code, JetBrains Mono, monospace",
+    "sizes": {
+      "h1": "text-3xl lg:text-4xl font-bold tracking-tight",
+      "h2": "text-xl lg:text-2xl font-semibold tracking-tight",
+      "h3": "text-lg font-medium",
+      "body": "text-sm font-normal text-slate-300 leading-relaxed",
+      "caption": "text-xs font-mono text-slate-400"
+    }
+  },
+  "layout_and_spacing": {
+    "container_padding": "p-4 md:p-6 lg:p-8",
+    "grid_gap": "gap-4 md:gap-6",
+    "card_radius": "rounded-lg",
+    "bento_strategy": "High Density Cyber SOC Dashboard grid with responsive columns (grid-cols-1 lg:grid-cols-12)"
+  },
+  "core_components_architecture": {
+    "header_nav": {
+      "wordmark": "SENTRA",
+      "glyph": "Lucide ShieldGlyph (ShieldAlert / ShieldWithEye)",
+      "badge": "SYNTHETIC ENVIRONMENT (persistent pill with animated ping pulse dot in cyan/amber)",
+      "controls": "Target environment switcher dropdown, Demo Incident Mode trigger, Live Scan Status indicator"
+    },
+    "landing_target_selection": {
+      "title": "Select Target Environment",
+      "targets": [
+        {
+          "id": "acme-retail",
+          "name": "Acme Retail Storefront & Checkout",
+          "badge": "SYNTHETIC ENVIRONMENT",
+          "infra": "AWS EKS + Cloudflare + Postgres",
+          "risk_preview": "3 High Risk Attack Paths",
+          "description": "E-commerce platform processing synthetic payment tokens and user PII."
+        },
+        {
+          "id": "fincorp-bank",
+          "name": "FinCorp Bank Core API & Gateway",
+          "badge": "SYNTHETIC ENVIRONMENT",
+          "infra": "Hybrid Cloud + OAuth2 + Redis",
+          "risk_preview": "1 Critical Escalation Path",
+          "description": "Financial services API gateway handling synthetic account transfers."
+        },
+        {
+          "id": "healthops",
+          "name": "HealthOps HIPAA Patient Portal",
+          "badge": "SYNTHETIC ENVIRONMENT",
+          "infra": "Azure Healthcare API + Kubernetes",
+          "risk_preview": "2 Critical Data Exposure Paths",
+          "description": "Healthcare EHR portal managing synthetic medical records and provider auth."
+        }
+      ],
+      "scan_auth_controls": {
+        "checkbox_label": "I authorize SENTRA to run non-destructive synthetic AI threat intelligence probes against this isolated environment.",
+        "start_button_text": "Launch Autonomous Security Scan",
+        "scan_duration_sec": 7
+      }
+    },
+    "live_streaming_scan_terminal": {
+      "duration": "7 seconds simulated/SSE stream",
+      "header_controls": "Terminal logs, live status indicator, pause stream, clear/copy output",
+      "log_steps": [
+        "[00:00.100] [INIT] Initializing SENTRA Neural Scan Engine v3.4...",
+        "[00:00.800] [TARGET] Target confirmed: Acme Retail (Isolated Synthetic VPC)",
+        "[00:01.500] [RECON] Probing web endpoints & TLS certificate chain...",
+        "[00:02.300] [ENUM] Discovered 14 endpoints, 2 unauthenticated API routes...",
+        "[00:03.400] [AUTH] Testing JWT signature validation & token replay vulnerabilities...",
+        "[00:04.200] [EXPLOIT] High vulnerability detected: CVE-2024-3094 exposure pattern in Auth proxy",
+        "[00:05.100] [GRAPH] Synthesizing multi-stage attack graph (4 nodes, 3 exploit edges)...",
+        "[00:06.200] [REMEDIATION] Generating automated Terraform & patch mitigation recipes...",
+        "[00:07.000] [COMPLETE] Scan finished in 6.98s. 1 Critical, 2 High, 3 Medium findings synthesized."
+      ]
+    },
+    "security_score_gauge": {
+      "focal_point_rank": 2,
+      "score_range": "0 - 100",
+      "visualization": "Radial Recharts gauge / custom SVG arc with animated needle & status badge (e.g., Score: 42 / 100 - Moderate Threat Level)",
+      "category_breakdowns": [
+        {"category": "Web Vulnerabilities", "score": 35, "weight": "High Risk", "color": "#FF3B30"},
+        {"category": "Transport Security", "score": 88, "weight": "Good", "color": "#30D158"},
+        {"category": "Auth & Access Control", "score": 28, "weight": "Critical Defect", "color": "#FF3B30"},
+        {"category": "Configuration Hygiene", "score": 62, "weight": "Medium Risk", "color": "#FFCC00"},
+        {"category": "Data Exposure Risk", "score": 45, "weight": "High Exposure", "color": "#FF9500"}
+      ]
+    },
+    "attack_graph": {
+      "focal_point_rank": 1,
+      "title": "Show Me the Attack",
+      "subtitle": "Interactive Multi-Stage Exploit Flow",
+      "library": "React Flow / SVG Interactive Node Flow",
+      "animations": "Animated SVG path dash-array edge draw-in on load, pulsing threat nodes",
+      "default_nodes": [
+        {"id": "node-1", "label": "External Attacker", "type": "threat_actor", "status": "active"},
+        {"id": "node-2", "label": "Exposed API Gateway", "type": "entrypoint", "status": "compromised", "cve": "CVE-2024-1188"},
+        {"id": "node-3", "label": "Auth Service (JWT Replay)", "type": "pivot", "status": "compromised", "cve": "CVE-2024-3094"},
+        {"id": "node-4", "label": "Production DB Cluster (PII Vault)", "type": "target", "status": "critical_target"}
+      ],
+      "side_panel_on_click": {
+        "title": "Node Intelligence Inspector",
+        "fields": ["Node Type", "Compromise Vector", "Likely Attacker Objective", "Associated CVEs", "Blast Radius Impact", "Mitigation Strategy"]
+      }
+    },
+    "ai_security_analyst": {
+      "title": "AI Security Analyst Intelligence",
+      "engine": "Powered by Gemini Reasoning Model",
+      "structure": {
+        "observed_evidence": "Deterministic logs, header dumps, payload responses, status codes, verified exploit proof",
+        "ai_narrative_interpretation": "Executive story explaining attacker mindset, business financial risk, compliance violations (GDPR/PCI-DSS), and blast radius"
+      }
+    },
+    "findings_list": {
+      "title": "Prioritized Security Findings",
+      "severity_filters": ["All", "Critical", "High", "Medium", "Low", "Info"],
+      "finding_item_schema": {
+        "title": "Title of vulnerability",
+        "severity": "Critical / High / Medium / Low / Info",
+        "evidence_blob": "Formatted raw HTTP request / JSON log / stack trace snippet",
+        "why_it_matters": "Clear plain-language business risk explanation",
+        "confidence": "Percentage rating (e.g., 98% Verified)",
+        "recommended_action": "Immediate step to contain threat",
+        "locate_in_graph_btn": "Locate in Attack Graph button"
+      }
+    },
+    "remediation_center": {
+      "title": "Remediation & Patch Center",
+      "ordering": "Ordered by risk-reduction ROI (P0, P1, P2)",
+      "code_snippets": {
+        "formats": ["Terraform", "Kubernetes Manifest", "Nginx Configuration", "Python / Node.js Middleware Fix"],
+        "features": ["Copy to Clipboard", "Simulate Fix Execution", "Diff View (Before vs After)"]
+      }
+    },
+    "demo_incident_mode": {
+      "title": "Demo Incident Walkthrough: 'Suspicious Admin Login'",
+      "stepper_phases": [
+        {"step": 1, "name": "Detect", "description": "Anomaly flag triggered on geo-ip velocity bypass"},
+        {"step": 2, "name": "Investigate", "description": "Correlation with unauthenticated token creation route"},
+        {"step": 3, "name": "Correlate", "description": "Mapping pivot path from Web Proxy to Postgres DB"},
+        {"step": 4, "name": "Explain", "description": "AI narrative synthesizes attacker's 4-step sequence"},
+        {"step": 5, "name": "Recommend", "description": "One-click patch generated to revoke compromised JWT keys"}
+      ]
+    }
+  },
+  "testing_and_data_attributes": {
+    "rule": "Every interactive, status, and navigation element MUST contain a kebab-case data-testid attribute.",
+    "required_test_ids": [
+      "app-header",
+      "synthetic-badge-topbar",
+      "target-card-acme-retail",
+      "target-card-fincorp-bank",
+      "target-card-healthops",
+      "authorization-checkbox",
+      "start-scan-button",
+      "streaming-terminal-container",
+      "terminal-log-output",
+      "security-score-gauge",
+      "category-breakdown-web",
+      "category-breakdown-auth",
+      "attack-graph-container",
+      "attack-graph-node-node-1",
+      "attack-graph-node-node-2",
+      "attack-graph-node-node-3",
+      "attack-graph-node-node-4",
+      "attack-graph-side-panel",
+      "ai-analyst-observed-evidence",
+      "ai-analyst-ai-narrative",
+      "findings-severity-filter-all",
+      "findings-severity-filter-critical",
+      "findings-list-container",
+      "remediation-center-container",
+      "remediation-code-snippet",
+      "demo-incident-stepper",
+      "demo-incident-step-1",
+      "demo-incident-step-2",
+      "demo-incident-step-3",
+      "demo-incident-step-4",
+      "demo-incident-step-5"
+    ]
+  },
+  "instructions_to_main_agent": [
+    "Build a cohesive, single-page or tabbed React SOC Security Dashboard application.",
+    "Ensure the electric cyan accent (#00F0FF) is used intentionally for focal highlights, active states, and graph edges without overwhelming dark background surfaces.",
+    "Implement the live streaming terminal scan (~7 seconds simulated SSE stream) with crisp console typography, live timestamping, step status indicators, and automatic transition to findings/attack graph upon scan completion.",
+    "Make the 'Show Me the Attack' graph the visual hero centerpiece with interactive node selection, glowing connection edges, and a side detail panel that slides out on node click.",
+    "Ensure all 3 preloaded target environments display the required 'SYNTHETIC ENVIRONMENT' badge prominently.",
+    "Ensure all buttons, interactive nodes, tabs, code blocks, and filters include explicit data-testid attributes for automated testing."
+  ]
+}
