@@ -39,6 +39,18 @@ const FindingCard = ({ f, assetName, onLocate, onPath }) => {
               <p className="eyebrow mb-1.5">Recommended action</p>
               <p className="text-sm leading-relaxed text-slate-200">{f.recommended_action}</p>
             </div>
+            {f.mitre?.length > 0 && (
+              <div data-testid={`finding-mitre-${f.id}`}>
+                <p className="eyebrow mb-1.5">MITRE ATT&amp;CK context</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {f.mitre.map((technique) => (
+                    <span key={technique.id} title={technique.name} className="rounded-sm border border-cyan/25 bg-cyan/[0.04] px-2 py-1 font-mono text-[10px] text-cyan">
+                      {technique.id} · {technique.tactic}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
             <button
               type="button"
               data-testid={`finding-locate-${f.id}`}

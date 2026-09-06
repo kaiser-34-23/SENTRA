@@ -108,6 +108,22 @@ let webpackConfig = {
 };
 
 webpackConfig.devServer = (devServerConfig) => {
+  // Keep browser requests on the authenticated frontend preview URL. The
+  // backend listens locally; forwarding a second Codespaces port makes the
+  // browser hit the tunnel sign-in page instead of the API.
+  devServerConfig.proxy = [
+    ...(devServerConfig.proxy || []),
+    {
+      context: ["/api"],
+      target: "http://127.0.0.1:8001",
+      changeOrigin: true,
+    },
+  ];
+  devServerConfig.headers = {
+    ...(devServerConfig.headers || {}),
+    "Cache-Control": "no-store",
+  };
+
   // Add health check endpoints if enabled
   if (config.enableHealthCheck && setupHealthEndpoints && healthPluginInstance) {
     const originalSetupMiddlewares = devServerConfig.setupMiddlewares;

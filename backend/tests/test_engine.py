@@ -1,11 +1,14 @@
 import sys
 from pathlib import Path
 
+import pytest
+
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from environments import ENVIRONMENTS, get_environment  # noqa: E402
 from engine.correlation import build_edges, build_attack_paths, build_graph, load_rules  # noqa: E402
 from engine.scoring import compute_score  # noqa: E402
+from engine.remediation import simulate_controls  # noqa: E402
 
 
 def _run(env_id):
@@ -74,3 +77,38 @@ def test_graph_shape():
     assert any(n["type"] == "asset" for n in g["nodes"])
     for e in g["edges"]:
         assert e["source"] in node_ids and e["target"] in node_ids
+
+
+def test_remediation_recalculates_graph_score_and_paths():
+    env, edges, paths = _run("acme-retail")
+    baseline_score = compute_score(env["findings"], paths)
+    result = simulate_controls(
+        env,
+        env["findings"],
+        {"ACME-02"},
+        baseline_paths=paths,
+        baseline_score=baseline_score,
+    )
+
+    assert "ACME-02" not in {finding["id"] for finding in result["findings"]}
+    assert "ACME-02" not in {node["id"] for node in result["graph"]["nodes"]}
+    assert result["score"]["overall"] > baseline_score["overall"]
+    assert result["comparison"]["risk_after"] < result["comparison"]["risk_before"]
+    assert result["comparison"]["broken_path_count"] >= 1
+    assert result["comparison"]["removed_edge_ids"]
+
+
+def test_remediation_does_not_promote_internal_node_to_entry():
+    env, _, paths = _run("fincorp-bank")
+    result = simulate_controls(env, env["findings"], {"FIN-02"}, baseline_paths=paths)
+
+    # FIN-03 was downstream of the fixed SSRF. It must not become a new direct
+    # attacker entry merely because its incoming edge disappeared.
+    assert all(path["node_ids"][0] != "FIN-03" for path in result["attack_paths"])
+    assert not any(edge["id"] == "attacker->FIN-03" for edge in result["graph"]["edges"])
+
+
+def test_remediation_rejects_unknown_findings():
+    env, _, paths = _run("acme-retail")
+    with pytest.raises(ValueError, match="Unknown finding"):
+        simulate_controls(env, env["findings"], {"NOT-A-FINDING"}, baseline_paths=paths)

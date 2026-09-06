@@ -105,6 +105,31 @@ def test_results_acme(s, acme_scan):
         assert "rank" in p
 
 
+def test_remediation_simulation_is_recalculated_and_non_persistent(s, acme_scan):
+    scan_id, _, _ = acme_scan
+    baseline = s.get(f"{API}/scans/{scan_id}/results", timeout=15).json()
+    fixed_id = baseline["attack_paths"][0]["node_ids"][0]
+
+    r = s.post(
+        f"{API}/scans/{scan_id}/simulate-remediation",
+        json={"finding_ids": [fixed_id]},
+        timeout=15,
+    )
+    assert r.status_code == 200, r.text
+    simulated = r.json()
+    assert simulated["status"] == "simulated"
+    assert simulated["fixed_finding_ids"] == [fixed_id]
+    assert fixed_id not in {finding["id"] for finding in simulated["findings"]}
+    assert simulated["score"]["overall"] > baseline["score"]["overall"]
+    assert simulated["comparison"]["risk_after"] < simulated["comparison"]["risk_before"]
+    assert simulated["comparison"]["broken_path_count"] >= 1
+    assert simulated["comparison"]["removed_edge_ids"]
+
+    original = s.get(f"{API}/scans/{scan_id}/results", timeout=15).json()
+    assert original["score"] == baseline["score"]
+    assert fixed_id in {finding["id"] for finding in original["findings"]}
+
+
 def test_results_fincorp(s):
     scan_id, _, _ = _run_scan(s, "fincorp-bank")
     r = s.get(f"{API}/scans/{scan_id}/results", timeout=15)

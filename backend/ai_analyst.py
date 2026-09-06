@@ -2,9 +2,13 @@
 import json
 import os
 import re
-from emergentintegrations.llm.chat import LlmChat, UserMessage, TextDelta, StreamDone
+try:
+    from emergentintegrations.llm.chat import LlmChat, UserMessage, TextDelta, StreamDone
+except ImportError:  # Optional in local-only deployments; deterministic scan still works.
+    LlmChat = UserMessage = TextDelta = StreamDone = None
 
 MODEL = ("gemini", "gemini-3-flash-preview")
+ACTIVE_MODEL = MODEL[1] if LlmChat is not None else "deterministic-evidence-narrator"
 
 SYSTEM_PROMPT = """You are SENTRA's security analyst narrator. You receive a JSON document containing security findings and attack paths that were ALREADY VALIDATED by a deterministic correlation engine.
 
@@ -29,14 +33,20 @@ HARD RULES:
 
 def build_ai_input(env, findings, paths, score):
     return {
-        "environment": {"id": env["id"], "name": env["name"], "sector": env["sector"], "synthetic": True},
+        "environment": {
+            "id": env["id"],
+            "name": env["name"],
+            "sector": env["sector"],
+            "target": env.get("target"),
+            "synthetic": bool(env.get("synthetic", "target" not in env)),
+        },
         "score": {"overall": score["overall"], "grade": score["grade"], "categories": [{"label": c["label"], "score": c["score"]} for c in score["categories"]]},
         "findings": [
-            {"id": f["id"], "title": f["title"], "severity": f["severity"], "category": f["category"], "asset_id": f["asset_id"], "confidence": f["confidence"], "evidence": f["evidence"][:400], "tags": f["tags"]}
+            {"id": f["id"], "title": f["title"], "severity": f["severity"], "category": f["category"], "asset_id": f["asset_id"], "confidence": f["confidence"], "evidence": f["evidence"][:400], "tags": f["tags"], "attack_role": f.get("attack_role"), "mitre": f.get("mitre", [])}
             for f in findings
         ],
         "attack_paths": [
-            {"id": p["id"], "rank": p["rank"], "likelihood": p["likelihood"], "chain": p["node_ids"], "steps": p["steps"], "impact_asset_id": p["impact_asset_id"]}
+            {"id": p["id"], "rank": p["rank"], "likelihood": p["likelihood"], "chain": p["node_ids"], "steps": p["steps"], "impact_asset_id": p["impact_asset_id"], "techniques": p.get("techniques", []), "roles": p.get("roles", [])}
             for p in paths
         ],
     }
@@ -69,6 +79,33 @@ def sanitize(result, findings, paths):
 
 
 async def generate_analysis(session_id, ai_input, findings, paths):
+    if LlmChat is None:
+        # Keep the product useful in local/offline deployments. This fallback
+        # is deliberately templated from observed evidence; it never pretends
+        # that an LLM was called or invents a path.
+        severity_order = ["critical", "high", "medium", "low", "info"]
+        priority = min((f["severity"] for f in findings), key=severity_order.index, default="low")
+        top = paths[0] if paths else None
+        chain_ids = top["node_ids"] if top else []
+        chain_text = " → ".join(chain_ids) if chain_ids else "no multi-step chain"
+        result = {
+            "summary": f"SENTRA observed {len(findings)} finding(s) and validated {len(paths)} attack path(s) from the supplied evidence. The deterministic engine places the highest-priority work on breaking the most exposed chain.",
+            "business_impact": f"A validated chain can turn an externally reachable weakness into access to a sensitive asset. The current model contains {len(paths)} path(s) reaching sensitive data; impact depends on the target's real data and identity controls. Fixing a link removes that relationship from the model and should be verified with a follow-up assessment.",
+            "attacker_objective": f"The modeled objective is to move from the observed entry point to the terminal asset via {chain_text}.",
+            "priority": priority,
+            "path_narratives": [
+                {"path_id": p["id"], "title": f"{p['entry']} to {p['impact']}", "narrative": f"This validated chain connects {', '.join(p['node_ids'])}. It ends at {p['impact']} and has a modeled likelihood of {p['likelihood']:.0%}."}
+                for p in paths
+            ],
+            "remediation": [
+                {"finding_id": f["id"], "action": f["recommended_action"], "reason": "This is the highest-priority observed control weakness in the current model." if i == 0 else "Fixing it reduces the remaining finding or path risk."}
+                for i, f in enumerate(sorted(findings, key=lambda f: (severity_order.index(f["severity"]), f["id"])))
+            ],
+            "evidence_cited": [f["id"] for f in findings[:8]] + [p["id"] for p in paths[:4]],
+            "confidence": min((float(f.get("confidence", 0.7)) for f in findings), default=0.7),
+            "mode": "deterministic fallback",
+        }
+        return sanitize(result, findings, paths), json.dumps(result)
     chat = LlmChat(api_key=os.environ["EMERGENT_LLM_KEY"], session_id=session_id, system_message=SYSTEM_PROMPT).with_model(*MODEL)
     text = ""
     async for ev in chat.stream_message(UserMessage(text=json.dumps(ai_input))):

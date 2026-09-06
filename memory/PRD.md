@@ -29,8 +29,13 @@ Demo-ready web dashboard that turns synthetic security findings into a visual at
 - Demo Incident Mode: 5-step auto-advancing replay (Detect → Investigate → Correlate → Explain → Recommend)
 - Testing agent iteration 1: backend 100%, frontend 100%
 
+## Implemented (2026-09)
+- Interactive remediation loop: apply or undo simulated controls from the graph, remediation center, or what-if panel
+- Deterministic graph, path, score, and risk recalculation with an explicit before/after security-state explanation
+- Simulation entry boundaries remain pinned to the original assessment so downstream internal findings cannot become artificial internet entry points
+
 ## Backlog
-- P1: Stream AI narrative token-by-token into the panel; "Simulate fix" that recomputes score with a finding removed
+- P1: Stream AI narrative token-by-token into the panel
 - P1: Per-finding AI explanation on demand in the node panel
 - P2: Scan history list; report export (PDF/markdown); environment switcher in top bar
 - P2: Real domain scanning + auth + domain ownership verification (explicitly out of MVP scope)

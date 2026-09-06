@@ -29,6 +29,8 @@ const FindingNode = ({ data, selected }) => {
       </div>
       <p className="mt-1 text-[11.5px] leading-snug text-slate-100">{data.label}</p>
       <p className="mt-1 truncate font-mono text-[9px] text-slate-500">{data.assetName}</p>
+      <p className="mt-1 truncate font-mono text-[9px] text-cyan/80">{data.attack_role}</p>
+      {data.mitre?.[0] && <p className="mt-1 font-mono text-[9px] text-slate-500">{data.mitre[0].id} · {data.mitre[0].tactic}</p>}
       <Handle type="source" position={Position.Right} className="!bg-slate-500 !border-0 !w-1.5 !h-1.5" />
     </div>
   );
@@ -65,7 +67,7 @@ const layout = (graph, assets) => {
   });
 };
 
-export const AttackGraph = ({ graph, findings, paths, assets, rules, focusId, onFocusHandled }) => {
+export const AttackGraph = ({ graph, findings, paths, assets, rules, focusId, onFocusHandled, onRemediate, busyFindingId, comparison }) => {
   const [selected, setSelected] = useState(null);
   const [activePath, setActivePath] = useState(null);
 
@@ -75,6 +77,11 @@ export const AttackGraph = ({ graph, findings, paths, assets, rules, focusId, on
       onFocusHandled?.();
     }
   }, [focusId, onFocusHandled]);
+
+  useEffect(() => {
+    setActivePath(null);
+    setSelected((current) => current && graph.nodes.some((node) => node.id === current) ? current : null);
+  }, [graph]);
 
   const highlight = useMemo(() => {
     if (!activePath) return null;
@@ -115,7 +122,12 @@ export const AttackGraph = ({ graph, findings, paths, assets, rules, focusId, on
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/[0.08] px-5 py-3">
         <div>
           <p className="eyebrow">Show me the attack</p>
-          <p className="text-sm text-slate-400">Edges are deterministic correlation rules. Click a node for evidence.</p>
+          <p className="text-sm text-slate-400">Edges are deterministic correlation rules. Click any node to see evidence, attacker role, and ATT&amp;CK context.</p>
+          {comparison && (
+            <p data-testid="attack-graph-state-update" className="mt-1.5 font-mono text-[10px] uppercase tracking-wider text-emerald-300">
+              Security state updated · risk {comparison.risk_before} → {comparison.risk_after} · {comparison.remaining_path_count} path{comparison.remaining_path_count === 1 ? "" : "s"} remain
+            </p>
+          )}
         </div>
         <div className="flex flex-wrap gap-1.5" data-testid="attack-path-selector">
           <button
@@ -139,7 +151,7 @@ export const AttackGraph = ({ graph, findings, paths, assets, rules, focusId, on
           ))}
         </div>
       </div>
-      <div className="flex">
+      <div className="flex flex-col lg:flex-row">
         <div className={`h-[560px] transition-[width] duration-300 ${selected ? "w-full lg:w-[62%]" : "w-full"}`}>
           <ReactFlow
             nodes={nodes}
@@ -157,7 +169,7 @@ export const AttackGraph = ({ graph, findings, paths, assets, rules, focusId, on
             <Controls showInteractive={false} />
           </ReactFlow>
         </div>
-        {selected && <NodePanel nodeId={selected} graph={graph} findings={findings} paths={paths} assets={assets} rules={rules} onClose={() => setSelected(null)} onSelect={setSelected} />}
+        {selected && <NodePanel nodeId={selected} graph={graph} findings={findings} paths={paths} assets={assets} rules={rules} onClose={() => setSelected(null)} onSelect={setSelected} onRemediate={onRemediate} busyFindingId={busyFindingId} />}
       </div>
     </div>
   );

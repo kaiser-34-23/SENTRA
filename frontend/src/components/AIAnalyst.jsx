@@ -7,7 +7,7 @@ const Section = ({ title, children, testId }) => (
   </div>
 );
 
-export const AIAnalyst = ({ analysis, loading, error, onRetry, paths, findings, compact = false }) => {
+export const AIAnalyst = ({ analysis, loading, error, onRetry, paths, findings, compact = false, stateUpdate }) => {
   const byId = Object.fromEntries(findings.map((f) => [f.id, f]));
   const top = paths[0];
 
@@ -17,7 +17,7 @@ export const AIAnalyst = ({ analysis, loading, error, onRetry, paths, findings, 
         <p className="eyebrow flex items-center gap-2">
           <Brain className="h-3.5 w-3.5 text-cyan" /> AI security analyst
         </p>
-        <span className="font-mono text-[10px] text-slate-500">gemini-3-flash · narrative only</span>
+        <span className="font-mono text-[10px] text-slate-500">evidence-grounded · narrative only</span>
       </div>
 
       <div data-testid="ai-analyst-observed-evidence" className="mt-4 rounded-md border border-white/[0.08] bg-[#04060A]/70 p-3">
@@ -38,12 +38,21 @@ export const AIAnalyst = ({ analysis, loading, error, onRetry, paths, findings, 
         <p className="mb-2 flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.16em] text-cyan">
           <Sparkles className="h-3 w-3" /> AI interpretation
         </p>
-        {loading && (
+        {stateUpdate && (
+          <div data-testid="decision-engine-update" className="space-y-3">
+            <p className="font-mono text-[10px] uppercase tracking-wider text-emerald-300">Decision engine update · deterministic</p>
+            <p className="text-sm leading-relaxed text-slate-100">{stateUpdate.explanation}</p>
+            <p className="text-xs leading-relaxed text-slate-400">
+              Risk moved from <span className="font-mono text-slate-200">{stateUpdate.risk_before}</span> to <span className="font-mono text-emerald-300">{stateUpdate.risk_after}</span>. The original AI narrative is paused because it describes the pre-remediation graph.
+            </p>
+          </div>
+        )}
+        {!stateUpdate && loading && (
           <div data-testid="ai-analyst-loading" className="flex items-center gap-3 py-6 text-sm text-slate-400">
             <RefreshCw className="spin-slow h-4 w-4 text-cyan" /> Analyst is reading the validated graph…
           </div>
         )}
-        {!loading && error && (
+        {!stateUpdate && !loading && error && (
           <div data-testid="ai-analyst-error" className="py-4 text-sm text-slate-400">
             {error}
             <button type="button" data-testid="ai-analyst-retry" onClick={onRetry} className="ml-3 rounded-sm border border-cyan/50 px-2 py-0.5 font-mono text-[10px] uppercase text-cyan hover:bg-cyan/10">
@@ -51,7 +60,7 @@ export const AIAnalyst = ({ analysis, loading, error, onRetry, paths, findings, 
             </button>
           </div>
         )}
-        {!loading && analysis && (
+        {!stateUpdate && !loading && analysis && (
           <div className="space-y-4">
             <p data-testid="ai-summary" className="text-sm leading-relaxed text-slate-100">{analysis.summary}</p>
             <Section title="Business impact" testId="ai-business-impact">

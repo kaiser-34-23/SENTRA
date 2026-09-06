@@ -48,7 +48,7 @@ def build_edges(findings, assets_list, rules=None):
     return edges
 
 
-def build_attack_paths(findings, edges, rules=None, max_paths=8):
+def build_attack_paths(findings, edges, rules=None, max_paths=8, entry_ids=None):
     rules = rules or load_rules()
     impact_tags = set(rules["impact_tags"])
     by_id = {f["id"]: f for f in findings}
@@ -56,7 +56,14 @@ def build_attack_paths(findings, edges, rules=None, max_paths=8):
     for e in edges:
         out.setdefault(e["source"], []).append(e)
     has_in = {e["target"] for e in edges}
-    entries = [f["id"] for f in findings if f["id"] in out and f["id"] not in has_in]
+    if entry_ids is None:
+        entries = [f["id"] for f in findings if f["id"] in out and f["id"] not in has_in]
+    else:
+        # A what-if remediation must preserve the trust boundaries observed in
+        # the original assessment. Otherwise removing the first node in a path
+        # can incorrectly promote an internal downstream weakness into a new
+        # internet-reachable entry point.
+        entries = [entry_id for entry_id in entry_ids if entry_id in by_id and entry_id in out]
 
     paths = []
 
@@ -100,17 +107,34 @@ def build_attack_paths(findings, edges, rules=None, max_paths=8):
         conf = min(by_id[n]["confidence"] for n in node_ids)
         likelihood = round(sev * conf * (1 - 0.05 * (len(chain) - 1)), 2)
         target = by_id[node_ids[-1]]
+        techniques = []
+        seen_techniques = set()
+        roles = []
+        for node_id in node_ids:
+            finding = by_id[node_id]
+            for technique in finding.get("mitre", []):
+                if technique["id"] not in seen_techniques:
+                    techniques.append(technique)
+                    seen_techniques.add(technique["id"])
+            role = finding.get("attack_role")
+            if role and role not in roles:
+                roles.append(role)
         result.append({
             "id": f"PATH-{len(result) + 1}",
             "node_ids": node_ids,
             "edge_ids": [e["id"] for e in chain],
-            "steps": [{"from": e["source"], "to": e["target"], "relation": e["relation"], "rule_id": e["rule_id"]} for e in chain],
+            "steps": [{
+                "from": e["source"], "to": e["target"], "relation": e["relation"], "rule_id": e["rule_id"],
+                "explanation": e.get("explanation"),
+            } for e in chain],
             "entry": by_id[node_ids[0]]["title"],
             "impact": target["title"],
             "impact_asset_id": target["asset_id"],
             "hops": len(chain),
             "likelihood": likelihood,
             "max_severity": max((by_id[n]["severity"] for n in node_ids), key=lambda s: SEVERITY_WEIGHT[s]),
+            "techniques": techniques,
+            "roles": roles,
         })
     result.sort(key=lambda p: (-p["likelihood"], -p["hops"], p["node_ids"]))
     result = result[:max_paths]
@@ -150,6 +174,9 @@ def build_graph(env, findings, edges, paths):
             "id": f["id"], "type": "finding", "label": f["title"], "severity": f["severity"],
             "asset_id": f["asset_id"], "layer": depth[f["id"]] + 1, "on_path": f["id"] in path_nodes,
             "is_entry": f["id"] in entry_ids,
+            "attack_role": f.get("attack_role", "Control weakness"),
+            "enables": f.get("enables", "additional attack surface"),
+            "mitre": f.get("mitre", []),
         })
     assets = {a["id"]: a for a in env["assets"]}
     for aid in impact_assets:

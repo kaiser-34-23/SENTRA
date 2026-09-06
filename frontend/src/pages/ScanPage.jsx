@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { Loader2, CheckCircle2 } from "lucide-react";
 import { streamUrl } from "@/lib/api";
 import { TopBar } from "@/components/TopBar";
@@ -28,6 +28,7 @@ const LogLine = ({ entry }) => (
 
 export default function ScanPage() {
   const { scanId } = useParams();
+  const location = useLocation();
   const navigate = useNavigate();
   const [lines, setLines] = useState([]);
   const [progress, setProgress] = useState(0);
@@ -58,15 +59,17 @@ export default function ScanPage() {
   }, [lines]);
 
   const stageIdx = STAGES.findIndex(([k]) => k === stage);
+  const activeMode = location.state?.assessment_mode === "active";
 
   return (
     <div className="min-h-screen">
       <TopBar status={done ? "complete" : "scanning"} />
       <main className="mx-auto max-w-5xl px-4 pt-12 md:px-8">
-        <p className="eyebrow">Live scan · synthetic traffic only</p>
+        <p className="eyebrow">Live scan · {activeMode ? "bounded active staging checks" : "authorized read-only checks"}</p>
         <h1 className="mt-3 font-mono text-3xl font-bold tracking-tight text-white sm:text-4xl">
           {done ? "Scan complete." : "Scanning…"}
         </h1>
+        <p data-testid="scan-target" className="mt-2 break-all font-mono text-xs text-cyan">{location.state?.target || "Target supplied by the assessor"}</p>
 
         <div className="mt-8 flex flex-wrap gap-2" data-testid="scan-stage-indicators">
           {STAGES.map(([key, label], i) => {
